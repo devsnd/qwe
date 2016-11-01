@@ -11,14 +11,18 @@ def stderr(s):
 
 orderedjson = json.JSONDecoder(object_pairs_hook=OrderedDict) 
 
-shortcuts = OrderedDict([
-    ('test', 'echo test'),
-])
+shortcuts = OrderedDict()
+
 with open(expanduser('~/.qwe'), 'r') as fh:
-    shortcuts = orderedjson.decode(fh.read())['shortcuts']
+    for line in fh.readlines():
+        stripped_line = line.strip()
+        if not stripped_line or stripped_line.startswith('#'):  # skip comments
+            continue
+        shortcut, command = stripped_line.split(' ', 1)
+        shortcuts[shortcut] = command.strip() # remove preceeding spaces
 
 helpText = '\n'.join([
-    '#%d %s  %s' % (idx + 1, shortcut, command)
+    '%d %s' % (idx + 1, shortcut)
     for idx, (shortcut, command) in enumerate(shortcuts.items())
 ])
 
