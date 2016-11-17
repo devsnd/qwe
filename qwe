@@ -37,21 +37,32 @@ def get_shortcut(cmd):
     else:
         return shortcuts.get(cmd)
 
-def execute(cmd):
-    stderr('$ %s' % cmd)
+def execute(cmd, verbose=False):
+    if verbose:
+        stderr('$ %s' % cmd)
     try:
         subprocess.call(cmd, shell=True)
     except KeyboardInterrupt:
         sys.exit(0)
 
+def error(message):
+    print(message)
+    sys.exit(1)
+
 args = sys.argv[1:]
+verbose = False
 if len(args):
+    if args[0].startswith('-'):
+        flag = args.pop(0)
+        if flag in ('-v', '--verbose'):
+            verbose = True
+        else:
+            error('Unknown flag %s' % flag)
     cmd = get_shortcut(args[0])
     if cmd is None:
         print(helpText)
-        print('Unknown command %s' % args[0])
-        sys.exit(1)
-    execute(cmd + ' '.join(args[1:]))
+        error('Unknown command %s' % args[0])
+    execute(cmd + ' ' + ' '.join(args[1:]), verbose)
 else:
     cmd = None
     while cmd is None:
@@ -65,6 +76,6 @@ else:
                 cmd += ' '.join(input_cmd[1:])
         except KeyboardInterrupt:
             sys.exit(0)
-    execute(cmd)
+    execute(cmd, verbose)
 
 
