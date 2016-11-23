@@ -3,7 +3,7 @@ import subprocess
 from collections import OrderedDict
 import sys
 import json
-from os.path import expanduser
+from os.path import expanduser, commonprefix
 
 def stderr(s):
     sys.stderr.write(s)
@@ -49,6 +49,16 @@ def error(message):
     print(message)
     sys.exit(1)
 
+gen_bash_completion = '''# Pipe this output into your local bash completion, e.g.:
+# qwe --gen-bash-completion >> ~/.bash_completion
+#
+
+_qwe() {
+    COMPREPLY=`qwe --auto-complete $2`
+}
+complete -F _qwe qwe
+'''
+
 args = sys.argv[1:]
 verbose = False
 if len(args):
@@ -56,6 +66,19 @@ if len(args):
         flag = args.pop(0)
         if flag in ('-v', '--verbose'):
             verbose = True
+        elif flag == '--auto-complete':
+            if not args:
+                print('\n' + ' '.join(shortcuts.keys()))
+            else:
+                possible = [s for s in shortcuts.keys() if s.startswith(args[0])]
+                if len(possible) == 1:
+                    print(possible[0], end='')
+                else:
+                    print(commonprefix(possible), end='')
+            sys.exit(0)
+        elif flag == '--gen-bash-completion':
+            print(gen_bash_completion)
+            sys.exit(0)
         else:
             error('Unknown flag %s' % flag)
     cmd = get_shortcut(args[0])
