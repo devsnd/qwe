@@ -52,9 +52,8 @@ def error(message):
 gen_bash_completion = '''# Pipe this output into your local bash completion, e.g.:
 # qwe --gen-bash-completion >> ~/.bash_completion
 #
-
 _qwe() {
-    COMPREPLY=`qwe --auto-complete $2`
+    COMPREPLY=( `qwe --auto-complete ${COMP_WORDS[COMP_CWORD]}` )
 }
 complete -F _qwe qwe
 '''
@@ -68,13 +67,15 @@ if len(args):
             verbose = True
         elif flag == '--auto-complete':
             if not args:
-                print('\n' + ' '.join(shortcuts.keys()))
+                print(' '.join(shortcuts.keys()))
+                sys.exit(0)
             else:
-                possible = [s for s in shortcuts.keys() if s.startswith(args[0])]
+                to_complete = args.pop(0)
+                possible = [s for s in shortcuts.keys() if s.startswith(to_complete)]
                 if len(possible) == 1:
-                    print(possible[0], end='')
+                    print(possible[0])
                 else:
-                    print(commonprefix(possible), end='')
+                    print(' '.join(possible), end='')
             sys.exit(0)
         elif flag == '--gen-bash-completion':
             print(gen_bash_completion)
