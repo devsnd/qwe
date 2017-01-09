@@ -2,6 +2,7 @@
 import subprocess
 from collections import OrderedDict
 import sys
+import os
 import json
 from os.path import expanduser, commonprefix
 
@@ -9,22 +10,16 @@ def stderr(s):
     sys.stderr.write(s)
     sys.stderr.write('\n')
 
-orderedjson = json.JSONDecoder(object_pairs_hook=OrderedDict) 
-
-shortcuts = OrderedDict()
-
-with open(expanduser('~/.qwe'), 'r') as fh:
-    for line in fh.readlines():
-        stripped_line = line.strip()
-        if not stripped_line or stripped_line.startswith('#'):  # skip comments
-            continue
-        shortcut, command = stripped_line.split(' ', 1)
-        shortcuts[shortcut] = command.strip() # remove preceeding spaces
-
-helpText = '\n'.join([
-    '%d %s' % (idx + 1, shortcut)
-    for idx, (shortcut, command) in enumerate(shortcuts.items())
-])
+def read_config(filepath):
+    shortcuts = OrderedDict()
+    with open(filepath, 'r') as fh:
+        for line in fh.readlines():
+            stripped_line = line.strip()
+            if not stripped_line or stripped_line.startswith('#'):  # skip comments
+                continue
+            shortcut, command = stripped_line.split(' ', 1)
+            shortcuts[shortcut] = command.strip() # remove preceeding spaces
+    return shortcuts
 
 def get_shortcut(cmd):
     if cmd.isnumeric():
@@ -58,6 +53,20 @@ _qwe() {
 complete -F _qwe qwe
 '''
 
+# read shortcuts from config (file or folder)
+config_path = expanduser('~/.qwe')
+if os.path.isfile(config_path):
+    shortcuts = read_config(config_path)
+else:
+    shortcuts = OrderedDict()
+    for filename in sorted(os.listdir(config_path)):
+        shortcuts.update(read_config(os.path.join(config_path, filename)))
+
+help_text = '\n'.join([
+    '%d %s' % (idx + 1, shortcut)
+    for idx, (shortcut, command) in enumerate(shortcuts.items())
+])
+
 args = sys.argv[1:]
 verbose = False
 if len(args):
@@ -84,13 +93,13 @@ if len(args):
             error('Unknown flag %s' % flag)
     cmd = get_shortcut(args[0])
     if cmd is None:
-        print(helpText)
+        print(help_text)
         error('Unknown command %s' % args[0])
     execute(cmd + ' ' + ' '.join(args[1:]), verbose)
 else:
     cmd = None
     while cmd is None:
-        print(helpText)
+        print(help_text)
         try:
             input_cmd = input('Please select a shortcut: \n').split(' ')
             cmd = get_shortcut(input_cmd[0])
@@ -101,5 +110,3 @@ else:
         except KeyboardInterrupt:
             sys.exit(0)
     execute(cmd, verbose)
-
-
