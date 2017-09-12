@@ -54,13 +54,13 @@ complete -F _qwe qwe
 '''
 
 # read shortcuts from config (file or folder)
-config_path = expanduser('~/.qwe')
-if os.path.isfile(config_path):
-    shortcuts = read_config(config_path)
-else:
-    shortcuts = OrderedDict()
-    for filename in sorted(os.listdir(config_path)):
-        shortcuts.update(read_config(os.path.join(config_path, filename)))
+config_folder_path = expanduser('~/.config/qwe')
+# assure that the folder to the file exists
+os.makedirs(config_folder_path, exist_ok=True)
+
+shortcuts = OrderedDict()
+for filename in sorted(os.listdir(config_folder_path)):
+    shortcuts.update(read_config(os.path.join(config_folder_path, filename)))
 
 help_text = '\n'.join([
     '%d %s' % (idx + 1, shortcut)
