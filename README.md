@@ -6,7 +6,7 @@ Launch stuff easily using shortcuts
 `$ sudo cp qwe /usr/bin/`
 
 # configure:
-Edit `~/.qwe` using your favorite editor
+Edit `~/.config/qwe/example` using your favorite editor
 
 The configuration format is simple, one shortcut per line:
 
@@ -30,3 +30,10 @@ version git tag -l | sort -V | tail -1
 # enable bash completion
 
 ```$ qwe --gen-bash-completion >> ~/.bash_completion```
+
+# you can add a `.qwe` file in every working directory
+
+```$ echo "hacker cat /dev/urandom | hexdump | grep cafe" > .qwe```
+
+and then qwe will scan all `.qwe` files up the directory tree and add all
+shortcuts found.

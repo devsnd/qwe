@@ -62,6 +62,20 @@ shortcuts = OrderedDict()
 for filename in sorted(os.listdir(config_folder_path)):
     shortcuts.update(read_config(os.path.join(config_folder_path, filename)))
 
+# try finding .qwe files in current working dir and parent:
+def find_qwe_files(directory):
+	for filename in os.listdir(directory):
+		if filename == '.qwe':
+			yield os.path.join(directory, filename)
+			break
+	parent_folder = os.path.dirname(directory)
+	if parent_folder != '/':
+		yield from find_qwe_files(parent_folder)
+
+local_config_files = list(find_qwe_files(os.getcwd()))[::-1]
+for conf_file in local_config_files:
+	shortcuts.update(read_config(conf_file))
+
 help_text = '\n'.join([
     '%d %s' % (idx + 1, shortcut)
     for idx, (shortcut, command) in enumerate(shortcuts.items())
